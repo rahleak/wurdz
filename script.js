@@ -15290,13 +15290,20 @@ const dictionary = [
   "shave"
 ]
 
-const guessGrid = document.querySelector("[data-guess-grid]")
+const WORD_LENGTH = 5;
+const alertContainer = document.querySelector("[data-alert-container]");
+const guessGrid = document.querySelector("[data-guess-grid]");
+const offsetFromDate = new Date(2022, 0, 1);
+const msOffset = Date.now() - offsetFromDate;
+const dayOffset = msOffset / 1000 / 60 / 60 / 24
+console.log(dayOffset)
+const targetWord = targetWords[Math.floor(dayOffset)]
 
 startInteraction()
 
 function startInteraction() {
-  document.addEventListener("click", handleMouseClick)
-  document.addEventListener("keydown", handleKeyPress)
+  document.addEventListener("click", handleMouseClick);
+  document.addEventListener("keydown", handleKeyPress);
 }
 
 function stopInteraction() {
@@ -15305,6 +15312,7 @@ function stopInteraction() {
 }
 
 function handleMouseClick(e) {
+  console.log(e);
   if (e.target.matches("[data-key]")) {
     pressKey(e.target.dataset.key)
     return
@@ -15322,6 +15330,7 @@ function handleMouseClick(e) {
 }
 
 function handleKeyPress(e) {
+  
   if (e.key === "Enter") {
     submitGuess()
     return
@@ -15329,6 +15338,7 @@ function handleKeyPress(e) {
 
   if (e.key === "Backspace" || e.key === "Delete") {
     deleteKey()
+    return
   }
 
   if (e.key.match(/^[a-z]$/)) { //regular expession. going to know that this is one of the keys that we wanted to press ^start $end of segment
@@ -15338,9 +15348,66 @@ function handleKeyPress(e) {
 }
 
 function pressKey(key) {
-  const nextTile = guessGrid.querySelector(":not([data-letter])")
+  const activeTiles = getActiveTiles()
+  if (activeTiles.length >= WORD_LENGTH) return
+  const nextTile = guessGrid.querySelector(":not([data-letter])") // want to find the very first thing that doesnt have the data-letter
   nextTile.dataset.letter = key.toLowerCase()
-  nextTile.textConent = key
+  nextTile.textContent = key
   nextTile.dataset.state = "active"
+}
 
+function deleteKey() {
+  const activeTiles = getActiveTiles()
+  const lastTile = activeTiles[activeTiles.length - 1];
+  if (lastTile == null) return;
+  lastTile.textContent = ""
+  delete lastTile.dataset.state
+  delete lastTile.dataset.letter
+}
+
+function submitGuess() {
+  const activeTiles = [...getActiveTiles()] // converted into array instead of using querySelector syntax because .map and reduceed cannot be done on a querySelector result
+  if (activeTiles.length !== WORD_LENGTH) {
+    showAlert("Not enough letters");
+    shakeTiles(activeTiles);
+    return
+  }
+
+  const guess = activeTiles.reduce((word, tile) => {
+    return word + tile.dataset.letter
+  }, "")
+
+  if(!dictionary.includes(guess)){
+    showAlert("Not in word list")
+    shakeTiles(activeTiles)
+    return
+  }
+}
+
+function getActiveTiles() {
+  return guessGrid.querySelectorAll('[data-state="active"]')
+}
+
+function showAlert(message, duration = 1000) {
+  const alert = document.createElement("div");
+  alert.textContent = message;
+  alert.classList.add("alert")
+  alertContainer.prepend(alert) //prepend adds the newest alert to the very top of the list
+  if (duration == null) return
+
+  setTimeout(() => {
+    alert.classList.add("hide")
+    alert.addEventListener("transitioned", () => {
+      alert.remove()
+    })
+  }, duration)
+}
+
+function shakeTiles(tiles) {
+  tiles.forEach(tile => {
+    tile.classList.add("shake")
+    tile.addEventListener("animationend", () => {
+      tile.classList.remove("shake")
+    }, {once: true})
+  })
 }
