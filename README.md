@@ -11,10 +11,14 @@ This code was run using VSCode's live server extension by [Ritwick](https://gith
 
 ## Images
 
+### The keys' hover state
 ![The keys' hover state](GIFS/hover.gif)
 
+### Appropriate alert showing for case of short guesses
 ![Appropriate alert showing for case of short guesses](GIFS/tooShort.gif)
 
+### Appropriate alert showing for case of non-existant words
 ![Appropriate alert showing for case of non-existant words](GIFS/notInWordList.gif)
 
+### Different colours applied to letters in guesses
 ![Different colours applied to letters in guesses](GIFS/youWin.gif)
